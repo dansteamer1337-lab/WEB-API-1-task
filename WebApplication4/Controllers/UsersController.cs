@@ -1,24 +1,30 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebApplication4.Models;
-using WebApplication4.Repository;
+using WebApplication4.Repositories.Interfaces;
 
-namespace WebApplication4.Repository
+namespace WebApplication4.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     public class UsersController : ControllerBase
     {
+        private readonly IUserRepositoryInMemory _userRepository;
+        public UsersController(IUserRepositoryInMemory userRepository)
+        {
+            _userRepository = userRepository;
+        }
+
         [HttpGet]
         public IActionResult GetUsers()
         {
-            var users = Repository.GetUsers();
+            var users = _userRepository.GetData();
             return Ok(users);
         }
 
         [HttpGet("{id}")]
         public IActionResult GetUser(int id)
         {
-            var user = Repository.GetUserById(id);
+            var user = _userRepository.GetData(id);
             if (user == null)
             {
                 return NotFound();
@@ -34,7 +40,7 @@ namespace WebApplication4.Repository
                 return BadRequest("UserName and Login are required");
             }
 
-            Repository.AddUser(user); // Исправлено на AddUser()
+            _userRepository.Add(user);
             return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
         }
 
@@ -43,7 +49,7 @@ namespace WebApplication4.Repository
         {
             try
             {
-                Repository.UpdateUser(user); // Исправлено на UpdateUser()
+                _userRepository.Edit(user);
                 return NoContent();
             }
             catch (ArgumentException)
@@ -57,7 +63,7 @@ namespace WebApplication4.Repository
         {
             try
             {
-                Repository.DeleteUser(id); // Исправлено на DeleteUser()
+                _userRepository.Delete(id);
                 return NoContent();
             }
             catch (ArgumentException)
